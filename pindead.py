@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import concurrent.futures
 import os
 import re
@@ -21,10 +22,30 @@ class Colors:
     END = "\033[0m"
 
 
+parser = argparse.ArgumentParser(
+    usage='%(prog)s [options] [ --username=romeyinfc@gmail.com ]',
+    description='UserName'
+)
+
+parser.add_argument('-u', '--username',
+                    help='Specify the username of the Pinboard User (e.g. email@domain.com)',
+                    metavar='email@domain.com',
+                    dest='username'
+                    )
+
+parser.add_argument('-t', '--authToken',
+                    help='Specify the API Token',
+                    metavar='username:token',
+                    dest='authToken'
+                    )
+
+args = parser.parse_args()
+
+
 class Pindead:
     def __init__(self):
-        self.PINBOARD_EMAIL = os.environ.get("PINBOARD_EMAIL")
-        self.PINBOARD_TOKEN = os.environ.get("PINBOARD_TOKEN")
+        self.PINBOARD_EMAIL = args.username
+        self.PINBOARD_TOKEN = args.authToken
         self.api_base_url = "https://api.pinboard.in/v1"
         self.color_codes = defaultdict(lambda: Colors.WARNING)
         self.color_codes[200] = Colors.SUCCESS
@@ -168,7 +189,8 @@ class Pindead:
                     self.add_dead_url(url, code, status)
 
         t2 = time.perf_counter()
-        print(f"\nProcessed {len(urls_to_check)} links in {t2 - t1:.2f} seconds.\n")
+        print(
+            f"\nProcessed {len(urls_to_check)} links in {t2 - t1:.2f} seconds.\n")
         dead_links_results = "No dead links!"
         if self.dead_url_count:
             dead_links_results = f"Dead links: {self.dead_url_count}\n\n"
